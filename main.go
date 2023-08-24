@@ -8,4 +8,7 @@ func main() {
 	cpu := emulator.CPU{}
 	cpu.Reset()
 	cpu.LoadRom("./roms/Pong.ch8")
+	for {
+		cpu.Cycle()
+	}
 }

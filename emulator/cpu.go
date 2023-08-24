@@ -1,6 +1,7 @@
 package emulator
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
@@ -13,7 +14,9 @@ type CPU struct {
 	delayTimer byte
 	soundTimer byte
 	stack [16]uint16
+	stackPointer int8
 	pc uint16
+	paused bool
 }
 
 func (cpu *CPU) Reset() {
@@ -22,6 +25,8 @@ func (cpu *CPU) Reset() {
 	cpu.soundTimer = 0
 	cpu.i = 0
 	cpu.instructionsPerCycle = 10
+	cpu.paused = false
+	cpu.stackPointer = -1
 
 	for i := 0; i < 16; i++ {
 		cpu.stack[i] = 0
@@ -72,4 +77,67 @@ func (cpu *CPU) LoadRom(filepath string) error {
 	}
 
 	return nil
+}
+
+func (cpu *CPU) Cycle() {
+	for i := 0; i < cpu.instructionsPerCycle; i++ {
+		if !cpu.paused {
+			opcode := cpu.fetchInstruction()
+			cpu.runInstruction(opcode)
+		}
+	}
+
+	// todo: update timer here
+
+	// todo: play sound here
+}
+
+func (cpu CPU) fetchInstruction() uint16 {
+	firstByte  := uint16(cpu.memory[cpu.pc])
+	secondByte := uint16(cpu.memory[cpu.pc + 1])
+	return (firstByte << 8) | secondByte
+}
+
+func (cpu *CPU) runInstruction(opcode uint16) {
+	prefix := opcode >> 12
+	switch prefix {
+	case 0:
+		cpu.handle0(opcode)
+	case 1:
+		cpu.handle1(opcode)
+	case 2:
+		cpu.handle2(opcode)
+	case 3:
+		cpu.handle3(opcode)
+	default:
+		panic(fmt.Errorf("instruction %X not yet implemented", opcode))
+	}
+}
+
+func (cpu *CPU) handle0(opcode uint16) {
+	switch opcode {
+	case 0x00e0:
+		// todo: clear display here
+		cpu.pc += 2
+	case 0x00ee:
+		cpu.pc = cpu.stack[cpu.stackPointer]
+		cpu.stackPointer -= 1
+	}
+}
+
+func (cpu *CPU) handle1(opcode uint16) {
+	cpu.pc = opcode & 0xfff
+}
+
+func (cpu *CPU) handle2(opcode uint16) {
+	cpu.stackPointer += 1
+	cpu.stack[cpu.stackPointer] = cpu.pc + 2
+	cpu.pc = opcode & 0xfff
+}
+
+func (cpu *CPU) handle3(opcode uint16) {
+	if cpu.v[(opcode >> 8) & 0xf] == byte(opcode & 0xff) {
+		cpu.pc += 2
+	}
+	cpu.pc += 2
 }

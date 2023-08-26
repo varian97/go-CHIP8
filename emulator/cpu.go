@@ -3,6 +3,7 @@ package emulator
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 )
 
@@ -119,8 +120,22 @@ func (cpu *CPU) runInstruction(opcode uint16) {
 		cpu.handle7(opcode)
 	case 8:
 		cpu.handle8(opcode)
+	case 9:
+		cpu.handle9(opcode)
+	case 0xA:
+		cpu.handleA(opcode)
+	case 0xB:
+		cpu.handleB(opcode)
+	case 0xC:
+		cpu.handleC(opcode)
+	case 0xD:
+		cpu.handleD(opcode)
+	case 0xE:
+		cpu.handleE(opcode)
+	case 0xF:
+		cpu.handleF(opcode)
 	default:
-		panic(fmt.Errorf("instruction %X not yet implemented", opcode))
+		panic(fmt.Errorf("invalid instruction %X", opcode))
 	}
 }
 
@@ -234,5 +249,71 @@ func (cpu *CPU) handle8(opcode uint16) {
 		cpu.v[x] *= 2
 	}
 
+	cpu.pc += 2
+}
+
+func (cpu *CPU) handle9(opcode uint16) {
+	if cpu.v[(opcode>>8)&0xf] != cpu.v[(opcode>>4)&0xf] {
+		cpu.pc += 2
+	}
+	cpu.pc += 2
+}
+
+func (cpu *CPU) handleA(opcode uint16) {
+	cpu.i = (opcode & 0xfff)
+	cpu.pc += 2
+}
+
+func (cpu *CPU) handleB(opcode uint16) {
+	cpu.pc = uint16(cpu.v[(opcode>>8)&0xf] + cpu.v[0])
+}
+
+func (cpu *CPU) handleC(opcode uint16) {
+	r := byte(rand.Intn(256))
+	x := (opcode >> 8) & 0xf
+	cpu.v[x] = r & byte((opcode & 0xff))
+	cpu.pc += 2
+}
+
+func (cpu *CPU) handleD(opcode uint16) {
+	// todo: implement drawing to canvas
+}
+
+func (cpu *CPU) handleE(opcode uint16) {
+	// todo: implement keyboard
+}
+
+func (cpu *CPU) handleF(opcode uint16) {
+	x := (opcode >> 8) & 0xf
+	switch opcode & 0xff {
+	case 0x7:
+		cpu.v[x] = cpu.delayTimer
+	case 0xA:
+		// todo: implement wait key pressed
+		cpu.paused = true
+	case 0x15:
+		cpu.delayTimer = cpu.v[x]
+	case 0x18:
+		cpu.soundTimer = cpu.v[x]
+	case 0x1E:
+		cpu.i += uint16(cpu.v[x])
+	case 0x29:
+		cpu.i = uint16(cpu.v[x] * 5)
+	case 0x33:
+		vx := cpu.v[x]
+		cpu.memory[cpu.i] = vx / 100
+		cpu.memory[cpu.i+1] = (vx / 10) % 10
+		cpu.memory[cpu.i+2] = vx % 10
+	case 0x55:
+		var i uint16 = 0
+		for i = 0; i <= x; i++ {
+			cpu.memory[cpu.i+i] = cpu.v[i]
+		}
+	case 0x65:
+		var i uint16 = 0
+		for i = 0; i <= x; i++ {
+			cpu.v[i] = cpu.memory[cpu.i+i]
+		}
+	}
 	cpu.pc += 2
 }

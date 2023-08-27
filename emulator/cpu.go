@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type CPU struct {
+type cpu struct {
 	instructionsPerCycle int
 	memory               [4096]byte
 	v                    [16]byte
@@ -18,9 +18,16 @@ type CPU struct {
 	stackPointer         int8
 	pc                   uint16
 	paused               bool
+	display              *display
 }
 
-func (cpu *CPU) Reset() {
+func MakeCPU(display *display) cpu {
+	cpu := cpu{display: display}
+	cpu.Reset()
+	return cpu
+}
+
+func (cpu *cpu) Reset() {
 	cpu.pc = 0x200
 	cpu.delayTimer = 0
 	cpu.soundTimer = 0
@@ -61,7 +68,7 @@ func (cpu *CPU) Reset() {
 	}
 }
 
-func (cpu *CPU) LoadRom(filepath string) error {
+func (cpu *cpu) LoadRom(filepath string) error {
 	f, err := os.Open(filepath)
 	if err != nil {
 		return err
@@ -80,7 +87,7 @@ func (cpu *CPU) LoadRom(filepath string) error {
 	return nil
 }
 
-func (cpu *CPU) Cycle() {
+func (cpu *cpu) Cycle() {
 	for i := 0; i < cpu.instructionsPerCycle; i++ {
 		if !cpu.paused {
 			opcode := cpu.fetchInstruction()
@@ -93,13 +100,13 @@ func (cpu *CPU) Cycle() {
 	// todo: play sound here
 }
 
-func (cpu CPU) fetchInstruction() uint16 {
+func (cpu cpu) fetchInstruction() uint16 {
 	firstByte := uint16(cpu.memory[cpu.pc])
 	secondByte := uint16(cpu.memory[cpu.pc+1])
 	return (firstByte << 8) | secondByte
 }
 
-func (cpu *CPU) runInstruction(opcode uint16) {
+func (cpu *cpu) runInstruction(opcode uint16) {
 	prefix := opcode >> 12
 	switch prefix {
 	case 0:
@@ -139,10 +146,10 @@ func (cpu *CPU) runInstruction(opcode uint16) {
 	}
 }
 
-func (cpu *CPU) handle0(opcode uint16) {
+func (cpu *cpu) handle0(opcode uint16) {
 	switch opcode {
 	case 0x00e0:
-		// todo: clear display here
+		cpu.display.Clear()
 		cpu.pc += 2
 	case 0x00ee:
 		cpu.pc = cpu.stack[cpu.stackPointer]
@@ -150,31 +157,31 @@ func (cpu *CPU) handle0(opcode uint16) {
 	}
 }
 
-func (cpu *CPU) handle1(opcode uint16) {
+func (cpu *cpu) handle1(opcode uint16) {
 	cpu.pc = opcode & 0xfff
 }
 
-func (cpu *CPU) handle2(opcode uint16) {
+func (cpu *cpu) handle2(opcode uint16) {
 	cpu.stackPointer += 1
 	cpu.stack[cpu.stackPointer] = cpu.pc + 2
 	cpu.pc = opcode & 0xfff
 }
 
-func (cpu *CPU) handle3(opcode uint16) {
+func (cpu *cpu) handle3(opcode uint16) {
 	if cpu.v[(opcode>>8)&0xf] == byte(opcode&0xff) {
 		cpu.pc += 2
 	}
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handle4(opcode uint16) {
+func (cpu *cpu) handle4(opcode uint16) {
 	if cpu.v[(opcode>>8)&0xf] != byte(opcode&0xff) {
 		cpu.pc += 2
 	}
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handle5(opcode uint16) {
+func (cpu *cpu) handle5(opcode uint16) {
 	vx := cpu.v[(opcode>>8)&0xf]
 	vy := cpu.v[(opcode>>4)&0xf]
 	if vx == vy {
@@ -183,27 +190,27 @@ func (cpu *CPU) handle5(opcode uint16) {
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handle6(opcode uint16) {
+func (cpu *cpu) handle6(opcode uint16) {
 	cpu.v[(opcode>>8)&0xf] = byte(opcode & 0xff)
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handle7(opcode uint16) {
+func (cpu *cpu) handle7(opcode uint16) {
 	cpu.v[(opcode>>8)&0xf] += byte(opcode & 0xff)
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handle8(opcode uint16) {
+func (cpu *cpu) handle8(opcode uint16) {
 	x := (opcode >> 8) & 0xf
 	y := (opcode >> 4) & 0xf
 
 	switch opcode & 0xf {
 	case 0x1:
-		cpu.v[x] |= byte(y)
+		cpu.v[x] |= cpu.v[y]
 	case 0x2:
-		cpu.v[x] &= byte(y)
+		cpu.v[x] &= cpu.v[y]
 	case 0x3:
-		cpu.v[x] ^= byte(y)
+		cpu.v[x] ^= cpu.v[y]
 	case 0x4:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
@@ -229,7 +236,7 @@ func (cpu *CPU) handle8(opcode uint16) {
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] /= 2
+		cpu.v[x] >>= 1
 	case 0x7:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
@@ -246,44 +253,75 @@ func (cpu *CPU) handle8(opcode uint16) {
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] *= 2
+		cpu.v[x] <<= 1
 	}
 
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handle9(opcode uint16) {
+func (cpu *cpu) handle9(opcode uint16) {
 	if cpu.v[(opcode>>8)&0xf] != cpu.v[(opcode>>4)&0xf] {
 		cpu.pc += 2
 	}
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handleA(opcode uint16) {
+func (cpu *cpu) handleA(opcode uint16) {
 	cpu.i = (opcode & 0xfff)
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handleB(opcode uint16) {
+func (cpu *cpu) handleB(opcode uint16) {
 	cpu.pc = uint16(cpu.v[(opcode>>8)&0xf] + cpu.v[0])
 }
 
-func (cpu *CPU) handleC(opcode uint16) {
+func (cpu *cpu) handleC(opcode uint16) {
 	r := byte(rand.Intn(256))
 	x := (opcode >> 8) & 0xf
 	cpu.v[x] = r & byte((opcode & 0xff))
 	cpu.pc += 2
 }
 
-func (cpu *CPU) handleD(opcode uint16) {
-	// todo: implement drawing to canvas
+func (cpu *cpu) handleD(opcode uint16) {
+	x := (opcode >> 8) & 0xf
+	y := (opcode >> 4) & 0xf
+	n := opcode & 0xf
+
+	baseX := int32(cpu.v[x]) % COL
+	baseY := int32(cpu.v[y]) % ROW
+	var xPos, yPos int32
+
+	// Read character byte from memory starting at position cpu.I
+	for i := uint16(0); i < n; i++ {
+		b := cpu.memory[cpu.i+i]
+
+		// For each byte, loop its bit and draw to the display (using XOR)
+		for j := 0; j < 8; j++ {
+			bit := b & 0x80
+			b <<= 1
+
+			xPos = baseX + int32(j)
+			yPos = baseY + int32(i)
+
+			// only care if bit > 0 because in XOR, everything xor-ed by zero will not change
+			if bit > 0 && xPos < COL && yPos < ROW {
+				isUnset := cpu.display.SetPixel(xPos, yPos)
+				if isUnset {
+					cpu.v[0xf] = 1
+				} else {
+					cpu.v[0xf] = 0
+				}
+			}
+		}
+	}
+	cpu.pc += 2
 }
 
-func (cpu *CPU) handleE(opcode uint16) {
+func (cpu *cpu) handleE(opcode uint16) {
 	// todo: implement keyboard
 }
 
-func (cpu *CPU) handleF(opcode uint16) {
+func (cpu *cpu) handleF(opcode uint16) {
 	x := (opcode >> 8) & 0xf
 	switch opcode & 0xff {
 	case 0x7:
@@ -302,7 +340,7 @@ func (cpu *CPU) handleF(opcode uint16) {
 	case 0x33:
 		vx := cpu.v[x]
 		cpu.memory[cpu.i] = vx / 100
-		cpu.memory[cpu.i+1] = (vx / 10) % 10
+		cpu.memory[cpu.i+1] = (vx % 100) / 10
 		cpu.memory[cpu.i+2] = vx % 10
 	case 0x55:
 		var i uint16 = 0

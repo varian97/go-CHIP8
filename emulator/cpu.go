@@ -95,7 +95,14 @@ func (cpu *cpu) Cycle() {
 		}
 	}
 
-	// todo: update timer here
+	if !cpu.paused {
+		if cpu.delayTimer > 0 {
+			cpu.delayTimer -= 1
+		}
+		if cpu.soundTimer > 0 {
+			cpu.soundTimer -= 1
+		}
+	}
 
 	// todo: play sound here
 }

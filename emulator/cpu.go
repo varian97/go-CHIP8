@@ -19,10 +19,11 @@ type cpu struct {
 	pc                   uint16
 	paused               bool
 	display              *display
+	keyboard             *keyboard
 }
 
-func MakeCPU(display *display) cpu {
-	cpu := cpu{display: display}
+func MakeCPU(display *display, keyboard *keyboard) cpu {
+	cpu := cpu{display: display, keyboard: keyboard}
 	cpu.Reset()
 	return cpu
 }
@@ -212,6 +213,8 @@ func (cpu *cpu) handle8(opcode uint16) {
 	y := (opcode >> 4) & 0xf
 
 	switch opcode & 0xf {
+	case 0x0:
+		cpu.v[x] = cpu.v[y]
 	case 0x1:
 		cpu.v[x] |= cpu.v[y]
 	case 0x2:
@@ -221,46 +224,46 @@ func (cpu *cpu) handle8(opcode uint16) {
 	case 0x4:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
+		cpu.v[x] = vx + vy
 		if vx > 255-vy {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] = vx + vy
 	case 0x5:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
+		cpu.v[x] = vx - vy
 		if vx > vy {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] = vx - vy
 	case 0x6:
 		vx := cpu.v[x]
+		cpu.v[x] >>= 1
 		if vx&0x1 > 0 {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] >>= 1
 	case 0x7:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
+		cpu.v[x] = vy - vx
 		if vy > vx {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] = vy - vx
 	case 0xe:
 		vx := cpu.v[x]
+		cpu.v[x] <<= 1
 		if (vx>>7)&0x1 > 0 {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
 		}
-		cpu.v[x] <<= 1
 	}
 
 	cpu.pc += 2
@@ -325,7 +328,21 @@ func (cpu *cpu) handleD(opcode uint16) {
 }
 
 func (cpu *cpu) handleE(opcode uint16) {
-	// todo: implement keyboard
+	x := (opcode >> 8) & 0xf
+	switch opcode & 0xff {
+	case 0x9e:
+		isPressed := cpu.keyboard.IsKeyPressed(cpu.v[x])
+		if isPressed {
+			cpu.pc += 2
+		}
+		cpu.pc += 2
+	case 0xa1:
+		isPressed := cpu.keyboard.IsKeyPressed(cpu.v[x])
+		if !isPressed {
+			cpu.pc += 2
+		}
+		cpu.pc += 2
+	}
 }
 
 func (cpu *cpu) handleF(opcode uint16) {
@@ -333,32 +350,44 @@ func (cpu *cpu) handleF(opcode uint16) {
 	switch opcode & 0xff {
 	case 0x7:
 		cpu.v[x] = cpu.delayTimer
+		cpu.pc += 2
 	case 0xA:
-		// todo: implement wait key pressed
+		cpu.keyboard.SetOnKeyPressedEqualWaitKey(func(key uint8) {
+			cpu.v[x] = key
+			cpu.paused = false
+			cpu.pc += 2
+		})
+		cpu.keyboard.SetWaitKey(true)
 		cpu.paused = true
 	case 0x15:
 		cpu.delayTimer = cpu.v[x]
+		cpu.pc += 2
 	case 0x18:
 		cpu.soundTimer = cpu.v[x]
+		cpu.pc += 2
 	case 0x1E:
 		cpu.i += uint16(cpu.v[x])
+		cpu.pc += 2
 	case 0x29:
 		cpu.i = uint16(cpu.v[x] * 5)
+		cpu.pc += 2
 	case 0x33:
 		vx := cpu.v[x]
 		cpu.memory[cpu.i] = vx / 100
 		cpu.memory[cpu.i+1] = (vx % 100) / 10
 		cpu.memory[cpu.i+2] = vx % 10
+		cpu.pc += 2
 	case 0x55:
 		var i uint16 = 0
 		for i = 0; i <= x; i++ {
 			cpu.memory[cpu.i+i] = cpu.v[i]
 		}
+		cpu.pc += 2
 	case 0x65:
 		var i uint16 = 0
 		for i = 0; i <= x; i++ {
 			cpu.v[i] = cpu.memory[cpu.i+i]
 		}
+		cpu.pc += 2
 	}
-	cpu.pc += 2
 }

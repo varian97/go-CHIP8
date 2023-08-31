@@ -8,21 +8,41 @@ import (
 
 func main() {
 	display := emulator.MakeDisplay()
-	cpu := emulator.MakeCPU(display)
+	keyboard := emulator.MakeKeyboard()
+	cpu := emulator.MakeCPU(display, keyboard)
 
+	// TODO: REMOVE
+	// cpu.LoadRom("./roms/1-chip8-logo.ch8")
+	// cpu.LoadRom("./roms/2-ibm-logo.ch8")
+	// cpu.LoadRom("./roms/3-corax+.ch8")
+	// cpu.LoadRom("./roms/4-flags.ch8")
+	// cpu.LoadRom("./roms/5-quirks.ch8")
+	// cpu.LoadRom("./roms/6-keypad.ch8")
 	cpu.LoadRom("./roms/Pong.ch8")
 
 	display.Init()
 	defer display.Cleanup()
 
+	tick0 := sdl.GetTicks64()
+
 	running := true
 	for running {
-		cpu.Cycle()
+		tick1 := sdl.GetTicks64()
+		delta := tick1 - tick0
 
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				running = false
+		if delta > 1000/60 {
+			tick0 = tick1
+
+			cpu.Cycle()
+
+			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+				switch t := event.(type) {
+				case *sdl.QuitEvent:
+					running = false
+				case *sdl.KeyboardEvent:
+					keycode := t.Keysym.Scancode
+					keyboard.HandleKeyPressed(keycode)
+				}
 			}
 		}
 	}

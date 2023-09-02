@@ -21,6 +21,8 @@ func main() {
 	cpu.LoadRom("./roms/Pong.ch8")
 
 	display.Init()
+
+	defer sdl.Quit()
 	defer display.Cleanup()
 
 	tick0 := sdl.GetTicks64()

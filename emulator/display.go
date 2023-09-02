@@ -47,7 +47,6 @@ func (display *display) Init() {
 func (display *display) Cleanup() {
 	display.surface.Free()
 	display.window.Destroy()
-	sdl.Quit()
 }
 
 func (display *display) Clear() {

@@ -9,6 +9,7 @@ import (
 func main() {
 	display := emulator.MakeDisplay()
 	keyboard := emulator.MakeKeyboard()
+	// audio := emulator.MakeAudio(440, 4400)
 	cpu := emulator.MakeCPU(display, keyboard)
 
 	// TODO: REMOVE
@@ -18,10 +19,18 @@ func main() {
 	// cpu.LoadRom("./roms/4-flags.ch8")
 	// cpu.LoadRom("./roms/5-quirks.ch8")
 	// cpu.LoadRom("./roms/6-keypad.ch8")
-	cpu.LoadRom("./roms/Pong.ch8")
+	cpu.LoadRom("./roms/SpaceInvaders.ch8")
 
 	display.Init()
+
+	// err := audio.OpenAudio()
+	// if err != nil {
+	// 	log.Println("Failed to open audio ", err)
+	// }
+
+	defer sdl.Quit()
 	defer display.Cleanup()
+	// defer audio.Cleanup()
 
 	tick0 := sdl.GetTicks64()
 

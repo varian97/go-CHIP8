@@ -102,10 +102,9 @@ func (cpu *cpu) Cycle() {
 		}
 		if cpu.soundTimer > 0 {
 			cpu.soundTimer -= 1
+			// cpu.audio.PlayAudio(1000)
 		}
 	}
-
-	// todo: play sound here
 }
 
 func (cpu cpu) fetchInstruction() uint16 {

@@ -15,7 +15,7 @@ func MakeAudio(freq int32, sample uint16) *audio {
 	spec := &sdl.AudioSpec{
 		Freq:     freq,
 		Format:   sdl.AUDIO_S16LSB,
-		Channels: 1,
+		Channels: 2,
 		Samples:  sample,
 	}
 
@@ -54,11 +54,15 @@ func (audio *audio) OpenAudio() error {
 	return nil
 }
 
-func (audio audio) PlayAudio(duration uint32) {
+func (audio *audio) PlayAudio() {
 	if audio.isAudioOpened {
 		sdl.PauseAudioDevice(audio.audioDevice, false)
 		sdl.QueueAudio(audio.audioDevice, audio.wave)
-		sdl.Delay(duration)
+	}
+}
+
+func (audio *audio) StopAudio() {
+	if audio.isAudioOpened {
 		sdl.PauseAudioDevice(audio.audioDevice, true)
 	}
 }

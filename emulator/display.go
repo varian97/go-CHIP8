@@ -24,10 +24,6 @@ func MakeDisplay() *display {
 }
 
 func (display *display) Init() {
-	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		panic(err)
-	}
-
 	window, err := sdl.CreateWindow("CHIP-8", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
 		int32(WIDTH), int32(HEIGHT), sdl.WINDOW_SHOWN)
 	if err != nil {

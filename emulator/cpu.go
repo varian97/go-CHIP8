@@ -20,10 +20,11 @@ type cpu struct {
 	paused               bool
 	display              *display
 	keyboard             *keyboard
+	audio                *audio
 }
 
-func MakeCPU(display *display, keyboard *keyboard) cpu {
-	cpu := cpu{display: display, keyboard: keyboard}
+func MakeCPU(display *display, keyboard *keyboard, audio *audio) cpu {
+	cpu := cpu{display: display, keyboard: keyboard, audio: audio}
 	cpu.Reset()
 	return cpu
 }
@@ -102,7 +103,9 @@ func (cpu *cpu) Cycle() {
 		}
 		if cpu.soundTimer > 0 {
 			cpu.soundTimer -= 1
-			// cpu.audio.PlayAudio(1000)
+			cpu.audio.PlayAudio()
+		} else {
+			cpu.audio.StopAudio()
 		}
 	}
 }

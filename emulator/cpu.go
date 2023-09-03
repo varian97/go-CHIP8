@@ -304,6 +304,7 @@ func (cpu *cpu) handleD(opcode uint16) {
 	var xPos, yPos int32
 
 	// Read character byte from memory starting at position cpu.I
+	cpu.v[0xf] = 0
 	for i := uint16(0); i < n; i++ {
 		b := cpu.memory[cpu.i+i]
 
@@ -320,8 +321,6 @@ func (cpu *cpu) handleD(opcode uint16) {
 				isUnset := cpu.display.SetPixel(xPos, yPos)
 				if isUnset {
 					cpu.v[0xf] = 1
-				} else {
-					cpu.v[0xf] = 0
 				}
 			}
 		}

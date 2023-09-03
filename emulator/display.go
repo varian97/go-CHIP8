@@ -7,7 +7,7 @@ import (
 const (
 	ROW    int32 = 32
 	COL    int32 = 64
-	SCALE  int32 = 10
+	SCALE  int32 = 5
 	HEIGHT int32 = ROW * SCALE
 	WIDTH  int32 = COL * SCALE
 )

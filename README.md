@@ -11,8 +11,29 @@ Sadly, I am too lazy to change it.
 1. Download and Install [Go](https://go.dev/doc/install)
 2. Follow instruction on [go-sdl2](https://github.com/veandco/go-sdl2) to setup SDL on your machine
 3. `cd` to the project directory and `go mod tidy`
-4. Build using `go build`
-5. The binary `go-CHIP8` should be created. Run the program `./go-CHIP8 <path to rom file>`
+4. Build using `go build -o gochip8`
+5. The binary `gochip8` should be created. Run the program `./gochip8 <path to rom file>`
+
+## Screenshots
+![ibm](https://github.com/varian97/go-CHIP8/assets/15712645/ac48f1a3-620e-48f2-8fa1-5ff0fe47b30b)
+
+![spaceinvader](https://github.com/varian97/go-CHIP8/assets/15712645/8208c1e6-164c-46ea-b3f6-7734bbdb310e)
+
+## Testing and Correctness
+This project use [chip8-test-suite](https://github.com/Timendus/chip8-test-suite) for testing.
+Here is the results:
+| Test                  | Result        |
+| -------------         | ------------- |
+| CHIP-8 splash screen  | ok(1/1)       |
+| IBM logo              | ok(1/1)       |
+| Corax+ opcode test    | ok(22/22)     |
+| Flags test            | ok(14/14)     |
+| Quirks test           | not ok(5/6)   |
+
+## Todo
+- [ ] 100% Test passed
+- [ ] Add menu bar in the UI
+- [ ] Add support for debugging
 
 ## References
 - http://devernay.free.fr/hacks/chip8/C8TECH10.HTM

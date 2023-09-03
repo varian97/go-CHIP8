@@ -1,4 +1,5 @@
 # go-CHIP8
+CHIP-8 Interpreter using Go Programming Language
 
 ## Table of contents
 
@@ -31,9 +32,10 @@ ALl versions can be downloaded from [Release Page](https://github.com/varian97/g
 5. The binary `gochip8` should be created. Run the program `./gochip8 <path to rom file>`
 
 ## Screenshots
-![ibm](https://github.com/varian97/go-CHIP8/assets/15712645/ac48f1a3-620e-48f2-8fa1-5ff0fe47b30b)
+![Screenshot from 2023-09-03 22-00-58](https://github.com/varian97/go-CHIP8/assets/15712645/91c06c50-52a1-4e0d-96a9-00b8fd58a34f)
 
-![spaceinvader](https://github.com/varian97/go-CHIP8/assets/15712645/8208c1e6-164c-46ea-b3f6-7734bbdb310e)
+![Screenshot from 2023-09-03 22-01-32](https://github.com/varian97/go-CHIP8/assets/15712645/6f6142a9-7ae7-4cf0-ae25-2a6aa7c6b65d)
+
 
 ## Testing and Correctness
 This project use [chip8-test-suite](https://github.com/Timendus/chip8-test-suite) for testing.

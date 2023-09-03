@@ -219,10 +219,13 @@ func (cpu *cpu) handle8(opcode uint16) {
 		cpu.v[x] = cpu.v[y]
 	case 0x1:
 		cpu.v[x] |= cpu.v[y]
+		cpu.v[0xf] = 0
 	case 0x2:
 		cpu.v[x] &= cpu.v[y]
+		cpu.v[0xf] = 0
 	case 0x3:
 		cpu.v[x] ^= cpu.v[y]
+		cpu.v[0xf] = 0
 	case 0x4:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
@@ -242,9 +245,10 @@ func (cpu *cpu) handle8(opcode uint16) {
 			cpu.v[0xf] = 0
 		}
 	case 0x6:
-		vx := cpu.v[x]
+		cpu.v[x] = cpu.v[y]
+		bitShifted := cpu.v[x] & 0x1
 		cpu.v[x] >>= 1
-		if vx&0x1 > 0 {
+		if bitShifted > 0 {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
@@ -259,9 +263,10 @@ func (cpu *cpu) handle8(opcode uint16) {
 			cpu.v[0xf] = 0
 		}
 	case 0xe:
-		vx := cpu.v[x]
+		cpu.v[x] = cpu.v[y]
+		bitShifted := cpu.v[x] & 0x80
 		cpu.v[x] <<= 1
-		if (vx>>7)&0x1 > 0 {
+		if bitShifted > 0 {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0

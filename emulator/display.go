@@ -50,8 +50,8 @@ func (display display) Cleanup() {
 }
 
 func (display *display) Clear() {
-	for i := int32(0); i < HEIGHT; i++ {
-		for j := int32(0); j < WIDTH; j++ {
+	for i := int32(0); i < ROW; i++ {
+		for j := int32(0); j < COL; j++ {
 			display.logicalSurface[i][j] = false
 		}
 	}
@@ -68,11 +68,11 @@ func (display *display) SetPixel(x, y int32) bool {
 	color := sdl.Color{R: 36, G: 38, B: 39, A: 1}
 	isUnset := false
 
-	if display.logicalSurface[x][y] {
-		display.logicalSurface[x][y] = false
+	if display.logicalSurface[y][x] {
+		display.logicalSurface[y][x] = false
 		isUnset = true
 	} else {
-		display.logicalSurface[x][y] = true
+		display.logicalSurface[y][x] = true
 		color = sdl.Color{R: 255, G: 255, B: 255, A: 1}
 	}
 

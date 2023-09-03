@@ -1,32 +1,33 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"varian97/go-CHIP8/emulator"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: gochip8 <path-to-rom>")
+		os.Exit(1)
+	}
+
+	romFile := os.Args[1]
+
 	display := emulator.MakeDisplay()
 	keyboard := emulator.MakeKeyboard()
-	// audio := emulator.MakeAudio(440, 4400)
-	cpu := emulator.MakeCPU(display, keyboard)
 
-	// TODO: REMOVE
-	// cpu.LoadRom("./roms/1-chip8-logo.ch8")
-	// cpu.LoadRom("./roms/2-ibm-logo.ch8")
-	// cpu.LoadRom("./roms/3-corax+.ch8")
-	// cpu.LoadRom("./roms/4-flags.ch8")
-	// cpu.LoadRom("./roms/5-quirks.ch8")
-	// cpu.LoadRom("./roms/6-keypad.ch8")
-	cpu.LoadRom("./roms/SpaceInvaders.ch8")
+	cpu := emulator.MakeCPU(display, keyboard)
+	err := cpu.LoadRom(romFile)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	display.Init()
-
-	// err := audio.OpenAudio()
-	// if err != nil {
-	// 	log.Println("Failed to open audio ", err)
-	// }
 
 	defer sdl.Quit()
 	defer display.Cleanup()

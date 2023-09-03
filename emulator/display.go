@@ -7,7 +7,7 @@ import (
 const (
 	ROW    int32 = 32
 	COL    int32 = 64
-	SCALE  int32 = 10
+	SCALE  int32 = 5
 	HEIGHT int32 = ROW * SCALE
 	WIDTH  int32 = COL * SCALE
 )
@@ -24,10 +24,6 @@ func MakeDisplay() *display {
 }
 
 func (display *display) Init() {
-	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		panic(err)
-	}
-
 	window, err := sdl.CreateWindow("CHIP-8", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
 		int32(WIDTH), int32(HEIGHT), sdl.WINDOW_SHOWN)
 	if err != nil {
@@ -44,7 +40,7 @@ func (display *display) Init() {
 	display.Clear()
 }
 
-func (display *display) Cleanup() {
+func (display display) Cleanup() {
 	display.surface.Free()
 	display.window.Destroy()
 }

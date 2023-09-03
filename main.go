@@ -15,21 +15,31 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
+		panic(err)
+	}
+	defer sdl.Quit()
+
 	romFile := os.Args[1]
 
 	display := emulator.MakeDisplay()
 	keyboard := emulator.MakeKeyboard()
+	audio := emulator.MakeAudio(4410, 440)
 
-	cpu := emulator.MakeCPU(display, keyboard)
+	cpu := emulator.MakeCPU(display, keyboard, audio)
 	err := cpu.LoadRom(romFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	display.Init()
+	err = audio.OpenAudio()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer audio.Cleanup()
 
-	defer sdl.Quit()
+	display.Init()
 	defer display.Cleanup()
 
 	tick0 := sdl.GetTicks64()

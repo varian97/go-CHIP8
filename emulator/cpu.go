@@ -20,10 +20,11 @@ type cpu struct {
 	paused               bool
 	display              *display
 	keyboard             *keyboard
+	audio                *audio
 }
 
-func MakeCPU(display *display, keyboard *keyboard) cpu {
-	cpu := cpu{display: display, keyboard: keyboard}
+func MakeCPU(display *display, keyboard *keyboard, audio *audio) cpu {
+	cpu := cpu{display: display, keyboard: keyboard, audio: audio}
 	cpu.Reset()
 	return cpu
 }
@@ -102,10 +103,11 @@ func (cpu *cpu) Cycle() {
 		}
 		if cpu.soundTimer > 0 {
 			cpu.soundTimer -= 1
+			cpu.audio.PlayAudio()
+		} else {
+			cpu.audio.StopAudio()
 		}
 	}
-
-	// todo: play sound here
 }
 
 func (cpu cpu) fetchInstruction() uint16 {
@@ -217,10 +219,13 @@ func (cpu *cpu) handle8(opcode uint16) {
 		cpu.v[x] = cpu.v[y]
 	case 0x1:
 		cpu.v[x] |= cpu.v[y]
+		cpu.v[0xf] = 0
 	case 0x2:
 		cpu.v[x] &= cpu.v[y]
+		cpu.v[0xf] = 0
 	case 0x3:
 		cpu.v[x] ^= cpu.v[y]
+		cpu.v[0xf] = 0
 	case 0x4:
 		vx := cpu.v[x]
 		vy := cpu.v[y]
@@ -240,9 +245,10 @@ func (cpu *cpu) handle8(opcode uint16) {
 			cpu.v[0xf] = 0
 		}
 	case 0x6:
-		vx := cpu.v[x]
+		cpu.v[x] = cpu.v[y]
+		bitShifted := cpu.v[x] & 0x1
 		cpu.v[x] >>= 1
-		if vx&0x1 > 0 {
+		if bitShifted > 0 {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
@@ -257,9 +263,10 @@ func (cpu *cpu) handle8(opcode uint16) {
 			cpu.v[0xf] = 0
 		}
 	case 0xe:
-		vx := cpu.v[x]
+		cpu.v[x] = cpu.v[y]
+		bitShifted := cpu.v[x] & 0x80
 		cpu.v[x] <<= 1
-		if (vx>>7)&0x1 > 0 {
+		if bitShifted > 0 {
 			cpu.v[0xf] = 1
 		} else {
 			cpu.v[0xf] = 0
@@ -302,6 +309,7 @@ func (cpu *cpu) handleD(opcode uint16) {
 	var xPos, yPos int32
 
 	// Read character byte from memory starting at position cpu.I
+	cpu.v[0xf] = 0
 	for i := uint16(0); i < n; i++ {
 		b := cpu.memory[cpu.i+i]
 
@@ -318,8 +326,6 @@ func (cpu *cpu) handleD(opcode uint16) {
 				isUnset := cpu.display.SetPixel(xPos, yPos)
 				if isUnset {
 					cpu.v[0xf] = 1
-				} else {
-					cpu.v[0xf] = 0
 				}
 			}
 		}

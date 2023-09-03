@@ -289,7 +289,7 @@ func (cpu *cpu) handleA(opcode uint16) {
 }
 
 func (cpu *cpu) handleB(opcode uint16) {
-	cpu.pc = uint16(cpu.v[(opcode>>8)&0xf] + cpu.v[0])
+	cpu.pc = (opcode & 0xfff) + uint16(cpu.v[0])
 }
 
 func (cpu *cpu) handleC(opcode uint16) {
@@ -388,12 +388,14 @@ func (cpu *cpu) handleF(opcode uint16) {
 		for i = 0; i <= x; i++ {
 			cpu.memory[cpu.i+i] = cpu.v[i]
 		}
+		cpu.i += x + 1
 		cpu.pc += 2
 	case 0x65:
 		var i uint16 = 0
 		for i = 0; i <= x; i++ {
 			cpu.v[i] = cpu.memory[cpu.i+i]
 		}
+		cpu.i += x + 1
 		cpu.pc += 2
 	}
 }

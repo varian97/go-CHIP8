@@ -1,5 +1,16 @@
 # go-CHIP8
 
+## Table of contents
+
+  * [What is CHIP-8](#what-is-chip-8)
+  * [Installation](#installation)
+    * [Binary Download](#binary-download)
+    * [Build from source](#build-from-source)
+  * [Screenshots](#screenshots)
+  * [Testing and Correctness](#testing-and-correctness)
+  * [Todo](#todo)
+  * [References](#references)
+
 ## What is CHIP-8
 CHIP-8 is an interpreted minimalist programming language that was designed by Joseph Weisbecker in the 1970s for use on the RCA COSMAC VIP computer.
 So CHIP-8 is actually an language (often mislabelled as emulator) and this project is about interpreting that language (CHIP-8 Interpreter).
@@ -7,7 +18,12 @@ So CHIP-8 is actually an language (often mislabelled as emulator) and this proje
 However I also made a mistake at the start of this project, I too, thought that CHIP-8 is an emulator. The package in this project even named `emulator`.
 Sadly, I am too lazy to change it.
 
-## Build from source
+## Installation
+
+### Binary Download
+ALl versions can be downloaded from [Release Page](https://github.com/varian97/go-CHIP8/releases)
+
+### Build from source
 1. Download and Install [Go](https://go.dev/doc/install)
 2. Follow instruction on [go-sdl2](https://github.com/veandco/go-sdl2) to setup SDL on your machine
 3. `cd` to the project directory and `go mod tidy`

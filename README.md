@@ -23,7 +23,8 @@ Sadly, I am too lazy to change it.
 ## Installation
 
 ### Binary Download
-ALl versions can be downloaded from [Release Page](https://github.com/varian97/go-CHIP8/releases)
+1. Download the binary from [Release Page](https://github.com/varian97/go-CHIP8/releases)
+2. Run the program `./gochip8 <path to rom file>`
 
 ### Build from source
 1. Download and Install [Go](https://go.dev/doc/install)

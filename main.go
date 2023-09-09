@@ -52,8 +52,6 @@ func main() {
 		if delta > 1000/60 {
 			tick0 = tick1
 
-			cpu.Cycle()
-
 			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 				switch t := event.(type) {
 				case *sdl.QuitEvent:
@@ -63,6 +61,9 @@ func main() {
 					keyboard.HandleKeyPressed(keycode)
 				}
 			}
+
+			cpu.Cycle()
+			display.UpdateSurface()
 		}
 	}
 }

@@ -97,16 +97,14 @@ func (cpu *cpu) Cycle() {
 		}
 	}
 
-	if !cpu.paused {
-		if cpu.delayTimer > 0 {
-			cpu.delayTimer -= 1
-		}
-		if cpu.soundTimer > 0 {
-			cpu.soundTimer -= 1
-			cpu.audio.PlayAudio()
-		} else {
-			cpu.audio.StopAudio()
-		}
+	if cpu.delayTimer > 0 {
+		cpu.delayTimer -= 1
+	}
+	if cpu.soundTimer > 0 {
+		cpu.soundTimer -= 1
+		cpu.audio.PlayAudio()
+	} else {
+		cpu.audio.StopAudio()
 	}
 }
 

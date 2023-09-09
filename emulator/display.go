@@ -46,8 +46,8 @@ func (display display) Cleanup() {
 }
 
 func (display *display) Clear() {
-	for i := int32(0); i < ROW; i++ {
-		for j := int32(0); j < COL; j++ {
+	for i := int32(0); i < HEIGHT; i++ {
+		for j := int32(0); j < WIDTH; j++ {
 			display.logicalSurface[i][j] = false
 		}
 	}
@@ -55,8 +55,6 @@ func (display *display) Clear() {
 	color := sdl.Color{R: 36, G: 38, B: 39, A: 1}
 	pixelColor := sdl.MapRGBA(display.surface.Format, color.R, color.G, color.B, color.A)
 	display.surface.FillRect(nil, pixelColor)
-
-	display.window.UpdateSurface()
 }
 
 func (display *display) SetPixel(x, y int32) bool {
@@ -75,6 +73,9 @@ func (display *display) SetPixel(x, y int32) bool {
 	pixelColor := sdl.MapRGBA(display.surface.Format, color.R, color.G, color.B, color.A)
 	display.surface.FillRect(&rect, pixelColor)
 
-	display.window.UpdateSurface()
 	return isUnset
+}
+
+func (display *display) UpdateSurface() {
+	display.window.UpdateSurface()
 }
